@@ -1,0 +1,43 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam roundcorner 10
+skinparam actorStyle awesome
+
+actor "Spectator" as spectator
+actor "Event Organizer" as organizer
+actor "Security Staff" as security
+actor "Emergency Team" as emergency
+actor "Payment Gateway" as payment <<Service>>
+
+rectangle "Sports Event Crowd Management System" {
+    usecase "Browse Matches & Venues" as UC1
+    usecase "Book Event Tickets" as UC2
+    usecase "Process Payment" as UC3
+    usecase "Issue Digital QR Pass" as UC4
+    usecase "Scan Ticket at Turnstile" as UC5
+    usecase "Validate Ticket Credential" as UC6
+    usecase "Monitor Crowd Density" as UC7
+    usecase "Trigger Evacuation Protocol" as UC8
+    usecase "Schedule Match Fixtures" as UC9
+    usecase "Generate Reports" as UC10
+}
+
+spectator --> UC1
+spectator --> UC2
+UC2 ..> UC3 : <<include>>
+UC2 ..> UC4 : <<include>>
+UC3 --- payment
+
+security --> UC5
+UC5 ..> UC6 : <<include>>
+UC6 ..> UC7 : <<extend>>
+
+organizer --> UC9
+organizer --> UC10
+organizer --> UC7
+
+emergency --> UC7
+UC7 ..> UC8 : <<extend>>
+
+@enduml

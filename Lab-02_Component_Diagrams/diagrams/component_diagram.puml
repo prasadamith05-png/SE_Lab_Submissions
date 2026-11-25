@@ -1,0 +1,54 @@
+@startuml
+skinparam componentStyle uml2
+skinparam roundcorner 8
+
+package "Client Layer" {
+    [Web Portal Dashboard] as WebApp
+    [Turnstile Scanner Client] as ScannerApp
+}
+
+package "API Gateway & Security Layer" {
+    component [API Gateway / Router] as Gateway
+    component [Auth Middleware] as Auth
+}
+
+package "Core Microservices" {
+    component [Ticketing & Booking Service] as TicketService {
+        portin "REST" as pTicket
+        portout "DB" as pTicketDB
+    }
+    
+    component [Ingress & Turnstile Controller] as IngressService {
+        portin "gRPC" as pIngress
+        portout "DB" as pIngressDB
+    }
+    
+    component [Crowd Telemetry Engine] as TelemetryService {
+        portin "Queue" as pQueue
+    }
+}
+
+package "Data & Messaging Infrastructure" {
+    database "PostgreSQL Relational DB" as Postgres
+    database "Redis In-Memory Lock" as Redis
+    queue "Kafka Event Broker" as Kafka
+}
+
+WebApp --> Gateway : HTTPS / JSON
+ScannerApp --> Gateway : gRPC
+
+Gateway ..> Auth : validateToken()
+Gateway --> pTicket
+Gateway --> pIngress
+
+TicketService --> Postgres
+TicketService --> Redis
+TicketService --> Kafka : publish("booking_events")
+
+IngressService --> Postgres
+IngressService --> Kafka : publish("gate_passage")
+
+Kafka --> pQueue
+TelemetryService --> Postgres
+
+@enduml
